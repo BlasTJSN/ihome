@@ -87,3 +87,33 @@
                 是，改成默认的json类型"application/json"
             返回response
 
+2.6 实现ihome/web_page.py中创建蓝图和正则静态路由页面访问逻辑
+        定义蓝图对象html
+        设计@html.route("/<regex(.*):file_name>")装饰器路由
+            判断file_name是否存在
+                不存在，赋值为"index.html"
+            判断file_name是否等于favicon.com
+                不等于，将file_name修改为"html/"+file_name
+            生成csrf_token
+            定义响应报文response
+            设置csrf_token的cookie
+            响应结果，返回response
+
+2.7 实现manage.py项目启动逻辑
+        创建项目应用对象app
+        数据库迁移
+        添加终端运行命令
+        添加终端导出数据库迁移命令
+        运行app
+2.8 ihome/constants.py中添加通用数据
+2.9 实现ihome/utils/sms.py中的逻辑
+    2.8.1 注册'容联云通讯' www.yuntongxun.com，在utils文件夹下的sms.py文件里修改配置
+    2.8.2 定义发送短信辅助类
+
+
+2.10 实现ihome/utils/image_storage.py中的逻辑
+    2.10.1 注册'七牛云' www.qiniu.com，在utils文件夹下的image_storage.py文件里修改配置信息，在constants.py文件里修改七牛的空间外链域名
+    2.10.2 定义七牛云存储上传文件接口类
+
+
+2.11
