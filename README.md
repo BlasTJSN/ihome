@@ -116,4 +116,7 @@
     2.10.2 定义七牛云存储上传文件接口类
 
 
-2.11
+2.11 ihome/libs/yuntongxun
+
+2.12 ihome/utils/captcha
+
