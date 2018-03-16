@@ -120,3 +120,6 @@
 
 2.12 ihome/utils/captcha
 
+2.13 ihome/models.py定义模型类
+
+
