@@ -4,6 +4,9 @@ from flask import Blueprint
 
 api = Blueprint("api", __name__)
 
+# 把拆分出去的蓝图导入到创建蓝图的地方
+import register
+
 
 @api.after_request
 def after_request(response):

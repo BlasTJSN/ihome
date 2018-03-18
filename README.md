@@ -120,6 +120,33 @@
 
 2.12 ihome/utils/captcha
 
-2.13 ihome/models.py定义模型类
+#### 3. ihome/models.py定义模型类
+3.1 python manage.py db init 创建migrations文件夹，存放迁移文件
+3.2 python manage.py db migrate -m 'initial migration' 迁移模型类
+3.3 python manage.py db upgrade
+
+#### 4. 用户注册
+4.1 新建register.py文件，在ihome/api_1_0/__init__.py中导入register模块
+4.2 实现生成图片验证码逻辑
+        调用captcha拓展包，生成图片验证码返回name,text,image
+        获取前端生成的image_code_id(UUID)
+        调用redis对象存储图片验证码text到redis中，key采用name_+UUID形式
+        调用make_response,返回image
+        设置响应的Content-Type
+        响应结果，返回response
+4.3 实现生成短信验证码逻辑
+4.4 实现注册逻辑
+
+ihome/api_1_0/register.py
+把拆分出去的蓝图导入到创建蓝图的位置ihome/api_1_0/__init__.py
+def image_code
+
+    前段：三元表达式 条件满足执行？后第一个，不满足执行？后面第二个
+
+def send_sms_code
+sample(list, k) 从列表中随机获取k个元素
+
+def register
+
 
 

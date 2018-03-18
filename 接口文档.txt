@@ -1,0 +1,45 @@
+1/生成图片验证码
+请求方法:GET
+请求url:/api/v1.0/imagecode/<image_code_id>
+请求参数:除UUID外无参
+
+返回结果:
+正确情况下:
+返回图片本身:不是json数据
+resp = make_response(image)
+resp.headers['Content-Type'] = 'image/jpg'
+
+错误情况下:
+return jsonify(errno=RET.DBERR,errmsg='存储图片验证码失败')
+
+imagecode_uuid = 'abcd'
+
+2/发送短信
+请求方法:GET
+请求url:/api/v1.0/smscode/?<mobile>&text='abcd'&id='2asdf234'
+请求参数:
+参数名         是否必须        参数描述
+mobile          是           用户输入的手机号
+text            是           用户输入的图片验证码的内容
+id              是           图片验证码的编号
+返回结果:
+正确情况下:
+return jsonify(errno=RET.OK,errmsg='OK')
+
+错误情况下:
+return jsonify(errno=RET.DATAERR,errmsg='图片验证码错误')
+
+3/用户注册
+请求方法:POST
+请求url:/api/v1.0/users
+请求参数:
+参数名         是否必须        参数描述
+mobile          是           用户输入的手机号
+sms_code        是           用户输入的短信验证码内容
+password        是           用户输入的注册密码
+返回结果:
+正确情况下:
+return jsonify(errno=RET.OK,errmsg='OK',data=user.to_dict())
+错误情况下:
+return jsonify(errno=RET.DATAERR,errmsg='用户名已注册')
+

@@ -4,7 +4,7 @@ import functools
 
 from flask import g, session, jsonify
 from werkzeug.routing import BaseConverter
-from utils.response_code import RET
+from response_code import RET
 
 class RegexConverter(BaseConverter):
     """在路由中使用正则表达进行参数提取的转换工具"""
