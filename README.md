@@ -125,7 +125,7 @@
 3.2 python manage.py db migrate -m 'initial migration' 迁移模型类
 3.3 python manage.py db upgrade
 
-#### 4. 用户注册
+#### 4. 用户注册 新增--ihome/static/js/ihome/register.js
 4.1 新建register.py文件，在ihome/api_1_0/__init__.py中导入register模块
 4.2 实现生成图片验证码逻辑
         调用captcha拓展包，生成图片验证码返回name,text,image
@@ -151,6 +151,19 @@
         返回结果
 
 4.4 实现注册逻辑
+        获取参数request.get_json()
+        检验参数
+        获取详细参数
+        校验手机号格式
+        判断用户是否已存在
+        校验短信验证码
+        获取redis存储的短信验证码
+        判断验证码是否过期
+        比较短信验证码是否正确
+        删除短信验证码
+        保存用户数据
+        缓存用户数据
+        返回结果
 
 ihome/api_1_0/register.py
 把拆分出去的蓝图导入到创建蓝图的位置ihome/api_1_0/__init__.py

@@ -7,7 +7,7 @@ from ihome.utils.captcha.captcha import captcha
 # 导入数据库实例
 from ihome import redis_store,constants,db
 # 导入flask内置对象
-from flask import current_app,make_response,request,jsonify
+from flask import current_app,make_response,request,jsonify,session
 # 导入自定义状态码
 from ihome.utils.response_code import RET
 # 导入模型类
@@ -128,6 +128,77 @@ def send_sms_code(mobile):
     else:
         return jsonify(errno=RET.THIRDERR, errmsg="发送失败")
 
+# url采用/user符合restful风格
+@api.route("/user", method=["POST"])
+def register():
+    """
+
+    :return:
+    """
+    # 获取参数,字典格式
+    user_data = request.get_json()
+    # 判断获取结果
+    if not user_data:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+    # 获取详细参数信息
+    mobile = user_data.get("mobile")
+    sms_code = user_data.get("sms_code")
+    password = user_data.get("password")
+    # 检查参数完整性
+    if not all([mobile, sms_code, password]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数缺失")
+    # 校验手机号格式
+    if not re.match(r"1[3-9]\d{9}", mobile):
+        return jsonify(errno=RET.PARAMERR, errmsg="手机号格式错误")
+    # 判断用户是否已存在
+    try:
+        user = User.query.filter_by(mobile=mobile).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询数据库异常")
+    else:
+        # 判断手机号是否已存在
+        if user:
+            return jsonify(errno=RET.DATAEXIST, errmsg="手机号已注册")
+
+    # 获取redis中正确的短信验证码
+    try:
+        real_sms_code = redis_store.get("SMSCode_"+mobile)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询数据库异常")
+    # 判断验证码是否过期
+    if not real_sms_code:
+        return jsonify(errno=RET.NODATA, errmsg="短信验证码过期")
+    # 直接比较短信验证码是否正确
+    if real_sms_code != sms_code:
+        return jsonify(errno=RET.DATAERR, errmsg="短信验证码错误")
+    # 删除短信验证码
+    try:
+        redis_store.delete("SMSCode_"+mobile)
+    except Exception as e:
+        current_app.logger.error(e)
+
+    # 创建User实例，用于保存数据操作
+    user = User(mobile=mobile, name=mobile)
+    # 调用模型类中额的方法generate_password_hash,对密码进行加密sha256处理
+    user.password = password
+    # 提交数据到数据库
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        # 如果提交数据发生异常，需要进行回滚
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="保存用户信息失败")
+    # 缓存用户信息
+    session["user_id"] = user.id
+    session["mobile"] = mobile
+    session["name"] = mobile
+    # 返回结果
+    # 返回data，前段若需要就可以直接使用了
+    return jsonify(errno=RET.OK, errmsg="OK", data=user.to_dict())
 
 
 
