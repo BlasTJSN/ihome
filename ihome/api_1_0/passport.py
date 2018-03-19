@@ -138,3 +138,46 @@ def change_user_profile():
     # 返回结果
     return jsonify(errno=RET.OK, errmsg="OK", data={"name":name})
 
+@api.route("user/avatar", methods=["POST"])
+@login_required
+def set_user_avatar():
+    """
+    设置用户头像
+    1/确认用户身份
+    2/获取参数,前端传过来的图片文件,request.files.get('avatar')
+    3/读取图片文件对象的数据
+    4/调用七牛云接口,上传用户头像
+    5/保存上传的结果,七牛云会对图片文件名进行编码处理
+    6/根据用户身份,保存用户头像的文件名
+    7/拼接图片的绝对路径
+    8/返回结果
+    :return:
+    """
+    # 获取用户id
+    user_id = g.iser_id
+    # 获取图片文件
+    avatar = request.files.get("avatar")
+    # 读取图片文件，转换成七牛云能接受的bytes类型
+    avatar_data = avatar.read()
+    # 调用七牛云，实现图片上传
+    try:
+        image_name = storage(avatar_data)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.THIRDERR, errmsg="上传图片失败")
+    # 把图片文件名保存到数据库中
+    # db.session.add(user)数据库会话对象
+    # 如果使用update则不需要添加数据库会话对象
+    try:
+        User.query.filter_by(id=user_id).update({"avatar_url":image_name})
+        # 提交会话
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        # 写入数据失败，回滚会话
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="保存用户头像失败")
+    # 拼接图片绝对路径
+    image_url = constants.QINIU_DOMIN_PREFIX + image_name
+    # 返回结果
+    return jsonify(errno=RET.OK, errmsg="OK", data={"avatar_url":image_url})

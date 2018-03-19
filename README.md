@@ -200,7 +200,14 @@ sample(list, k) 从列表中随机获取k个元素
         返回结果，传递数据name-restful风格
 
 5.4 实现上传用户头像逻辑
-
+        添加用户登陆认证装饰器，获取参数user_id
+        post请求获取参数request.files.get("avatar")
+        读取图片文件中的数据
+        调用七牛云接口，上传用户头像
+        保存上传的结果--图片文件名，七牛云会对图片文件名进行编码处理
+        查询数据库，保存用户头像
+        拼接图片绝对路径
+        返回结果，传递数据image_url-restful风格
 5.5 实现用户实名认证逻辑，新增--ihome/static/js/ihome/auth.js
 
 
