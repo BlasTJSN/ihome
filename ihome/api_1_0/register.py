@@ -199,10 +199,3 @@ def register():
     # 返回结果
     # 返回data，前段若需要就可以直接使用了
     return jsonify(errno=RET.OK, errmsg="OK", data=user.to_dict())
-
-
-
-
-
-
-

@@ -1,12 +1,14 @@
 # coding=utf-8
 # 导入蓝图对象
-from . import api
+from . import api,
 # 导入flask封装的对象
 from flask import request,jsonify,current_app,session,g
 # 导入自定义状态码
 from ihome.utils.response_code import RET
 # 导入模型类
 from ihome.models import User
+# 导入登陆验证装饰器
+from ihome.utils.commons import login_required
 # 导入数据库实例
 from ihome import db,constants
 # 导入七牛云拓展包
@@ -65,3 +67,30 @@ def login():
     session["name"] = user.name
     # 返回结果
     return jsonify(errno=RET.OK, errmsg="OK", data={"user_id":user.id})
+
+@api.route("/user", methods=["get"])
+@login_required
+def get_user_profile():
+    """
+     获取用户信息
+    1/获取用户身份
+    user_id = g.user_id
+    2/根据用户身份查询数据库
+    user = User.query.get(user_id)
+    user = User.query.filter_by(id=user_id).first()
+    3/校验查询结果
+    4/返回结果,需要调用模型类中to_dict()方法
+    :return:
+    """
+    # 获取用户id
+    user_id = g.user_id
+    # 查询数据库
+    try:
+        user = User.query.filter_by(id=user_id).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询数据库错误")
+    # 判断查询结果
+    if not user:
+        return jsonify(errno=RET.NODATA, errmsg="查询数据库错误")
+    return jsonify(errno=RET.OK, errmsg="OK", data=user.to_dict())
