@@ -209,6 +209,12 @@ sample(list, k) 从列表中随机获取k个元素
         拼接图片绝对路径
         返回结果，传递数据image_url-restful风格
 5.5 实现用户实名认证逻辑，新增--ihome/static/js/ihome/auth.js
-
+       添加用户登陆认证装饰器，获取参数user_id
+       post请求获取参数request.get_json()
+        判断参数是否存在
+        获取详细参数real_name,id_card
+        检验参数完整性
+        把用户实名信息写入数据库，确保只执行第一次
+        返回结果
 
 

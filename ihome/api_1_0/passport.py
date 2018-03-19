@@ -181,3 +181,42 @@ def set_user_avatar():
     image_url = constants.QINIU_DOMIN_PREFIX + image_name
     # 返回结果
     return jsonify(errno=RET.OK, errmsg="OK", data={"avatar_url":image_url})
+
+
+@api.route("user/auth", methods=["POST"])
+@login_required
+def set_user_auth():
+    """
+    设置用户实名信息:
+    1/获取用户id
+    2/获取参数post
+    3/检查参数的存在
+    4/获取详细的实名信息,real_name/id_card
+    5/把用户实名信息写入到数据库中,确保实名认证只能执行一次
+    User.query.filter_by(id=user_id,real_name=None,id_card=None).update({'......'})
+    6/返回结果
+    :return:
+    """
+    # 获取用户id
+    user_id = g.user_id
+    # 获取参数
+    user_data = request.get_json()
+    # 判断是否存在
+    if not user_data:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+    # 获取详细的参数信息
+    real_name = user_data.get("real_name")
+    id_card = user_data.get("id_card")
+    # 检验参数完整性
+    if not all([real_name, id_card]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数缺失")
+    # 保存用户实名信息到数据库，只执行第一次
+    try:
+        User.query.filter_by(id=user_id, real_name=None, id_card=None).update({"real_name":real_name, "id_card":id_card})
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="保存用户实名信息失败")
+    # 返回结果
+    return jsonify(errno=RET.OK, errmsg="OK")
