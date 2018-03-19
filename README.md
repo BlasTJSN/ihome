@@ -165,16 +165,35 @@
         缓存用户数据
         返回结果
 
-ihome/api_1_0/register.py
-把拆分出去的蓝图导入到创建蓝图的位置ihome/api_1_0/__init__.py
-def image_code
-
-    前段：三元表达式 条件满足执行？后第一个，不满足执行？后面第二个
+前段：三元表达式 条件满足执行？后第一个，不满足执行？后面第二个
 
 def send_sms_code
 sample(list, k) 从列表中随机获取k个元素
 
-def register
+
+#### 5. 实现passport.py中的逻辑，在ihome/api_1_0/__init__.py中导入register模块
+5.1 实现用户登陆逻辑, 新增--ihome/static/js/ihome/login.js
+        post请求，获取参数request.get_json()
+        判断获取结果是否存在
+        获取详细参数mobile,password
+        检验参数完整性
+        校验手机号格式
+        查询数据库，判断用户是否已注册或密码是否正确
+        缓存用户信息，user_id,mobile,name
+        返回结果，传递数据user_id--restful风格
+
+5.2 实现获取用户基本信息逻辑，新增--ihome/static/js/ihome/my.js
+        添加用户登录认证装饰器，获取参数user_id
+        get请求无参数
+        根据user_id查询数据库
+        校验查询结果
+        返回结果，传递参数user.to_dict()
+
+5.3 实现修改用户信息逻辑，新增--ihome/static/js/ihome/profile.js
+
+5.4 实现上传用户头像逻辑
+
+5.5 实现用户实名认证逻辑，新增--ihome/static/js/ihome/auth.js
 
 
 

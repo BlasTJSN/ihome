@@ -43,3 +43,72 @@ return jsonify(errno=RET.OK,errmsg='OK',data=user.to_dict())
 错误情况下:
 return jsonify(errno=RET.DATAERR,errmsg='用户名已注册')
 
+4/用户登陆
+请求方法:POST
+请求URL:/api/v1.0/sessions
+请求参数:
+参数名         是否必须        参数描述
+mobile           是          用户登陆的手机号
+password         是          用户登陆密码
+
+返回结果:
+正确情况下:
+return jsonify(errno=RET.OK,errmsg='OK',data={'user_id':user.id})
+
+错误情况下:
+return jsonify(errno=RET.DATAERR,errmsg='用户名或密码错误')
+
+5/我的爱家---用户基本信息
+请求方法:GET
+请求URL:/api/v1.0/user
+请求参数:无参
+session.get('user_id')
+
+返回结果:
+正确情况下:
+return jsonify(errno=RET.OK,,errmsg='OK',data=user.to_dict())
+
+错误情况下:
+return jsonify(errno=RET.NODATA,errmsg='没有数据')
+
+6/修改用户名
+请求方法:PUT
+请求url:/api/v1.0/user/name
+请求参数:
+参数名         是否必须        参数说明
+name            是           用户输入的用户名信息
+
+返回结果:
+正确情况下:
+return jsonify(errno=RET.OK,errmsg='OK',data={'name':name})
+
+错误情况下:
+return jsonify(errno=RET.DBERR,errmsg='保存用户名失败')
+
+7/上传用户头像
+请求方法:POST
+请求URL:/api/v1.0/user/avatar
+请求参数:user_id
+参数名         是否必须        参数说明
+avatar          是           用户头像的图片文件
+
+返回结果:
+正确情况下:
+image_url = 七牛云的外链域名 + 调用七牛云返回的文件名信息
+return jsonify(errno=RET.OK,errmsg='OK',data={"avatar_url":image_url})
+
+8/设置用户实名信息
+请求方法:POST
+请求url:/api/v1.0/user/auth
+请求参数:user_id
+参数名         是否必须        参数说明
+real_name       是           用户输入的真实姓名
+id_card         是           用户输入的身份证号码
+
+返回结果:
+正确情况下:
+return jsonify(errno=RET.OK,errmsg='OK')
+错误情况下:
+return jsonify(errno=RET.DBERR,errmsg='保存用户实名信息失败')
+
+
