@@ -1,6 +1,6 @@
 # coding=utf-8
 # 导入蓝图对象
-from . import api,
+from . import api
 # 导入flask封装的对象
 from flask import request,jsonify,current_app,session,g
 # 导入自定义状态码
@@ -94,3 +94,47 @@ def get_user_profile():
     if not user:
         return jsonify(errno=RET.NODATA, errmsg="查询数据库错误")
     return jsonify(errno=RET.OK, errmsg="OK", data=user.to_dict())
+
+@api.route("/user/name", methods=["PUT"])
+@login_required
+def change_user_profile():
+    """
+      修改用户信息
+    1/获取用户身份
+    2/获取参数,put请求里的json数据,request.get_json()
+    3/判断获取结果是否有数据
+    4/获取详细的参数信息,name
+    5/查询数据库,执行update更新用户信息
+    User.query.filter_by(id=user_id).update({'name':name})
+    db.session.commit()
+    6/更新缓存中的用户信息
+    session['name'] = name
+    7/返回结果
+    :return:
+    """
+    # 获取用户id
+    user_id = g.user_id
+    # 获取参数
+    user_data = request.get_json()
+    # 判断参数是否存在
+    if not user_data:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+    # 获取详细参数name
+    name = user_data.get("name")
+    # 检验参数是否存在
+    if not name:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数缺失")
+    # 更新用户的姓名信息
+    try:
+        User.query.filter_by(id=user_id).update({"name":name})
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        # 写入数据发生异常需要回滚
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="保存用户信息异常")
+    # 更新缓存中的用户信息
+    session["name"] = name
+    # 返回结果
+    return jsonify(errno=RET.OK, errmsg="OK", data={"name":name})
+

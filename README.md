@@ -190,6 +190,14 @@ sample(list, k) 从列表中随机获取k个元素
         返回结果，传递参数user.to_dict()
 
 5.3 实现修改用户信息逻辑，新增--ihome/static/js/ihome/profile.js
+        添加用户登陆认证装饰器，获取参数user_id
+        put请求获取参数request.get_json()
+        判断获取结果是否存在
+        获取详细参数name
+        查询数据库，执行update命令更新用户信息
+        提交session
+        更新缓存中的用户信息
+        返回结果，传递数据name-restful风格
 
 5.4 实现上传用户头像逻辑
 
