@@ -49,7 +49,7 @@ def create_app(config_name):
     Session(app)
 
     # 为app添加api蓝图应用--ihome/api_1_0/__init__.py
-    from ihome.api_1_0 import api as api_1_0_blueprint
+    from .api_1_0 import api as api_1_0_blueprint
     # 注册蓝图，配置调用接口url_prefix
     # 在manage.py中app的url_map将包含api,匹配路径后会自动添加url_prefix
     app.register_blueprint(api_1_0_blueprint, url_prefix="/api/v1.0")

@@ -111,4 +111,73 @@ return jsonify(errno=RET.OK,errmsg='OK')
 错误情况下:
 return jsonify(errno=RET.DBERR,errmsg='保存用户实名信息失败')
 
+9/获取用户实名信息
+请求方法:GET
+请求url:/api/v1.0/user/auth
+请求参数:无参(user_id)
+
+返回结果:
+正确情况下:
+return jsonify(errno=RET.OK,errmsg='OK',data=user.auth_to_dict())
+错误情况下:
+return jsonify(errno=RET.NODATA,errmsg='无效操作')
+
+10/获取城区信息
+请求方法:GET
+请求url:/api/v1.0/areas
+请求参数:无参
+返回结果:
+正确情况下:
+resp = '{"errno":0,"errmsg":"OK","data":%s}' % areas_json
+return resp
+
+错误情况下:
+return jsonify(errno=RET.NODATA,errmsg='无城区信息')
+
+11/发布新房源
+请求方法:POST
+请求url:/api/v1.0/houses
+请求参数:
+参数名         是否必须        参数描述
+title           是           房屋标题
+price           是           房屋价格
+area_id         是           房屋城区
+address         是           房屋详细地址
+room_count      是           房屋数目
+acreage         是           房屋面积
+unit            是           房屋单元(几室几厅)
+capacity        是           人数上限
+beds            是           卧床配置(单人床/双人床)
+deposit         是           押金
+min_days        是           最小入住天数
+max_days        是           最大入住天数
+facility        否           配套设施
+
+返回结果:
+正确情况下:
+return jsonify(errno=RET.OK,errmsg='OK',data={'house_id':house.id})
+
+错误情况下:
+前端是以元为单位,数据库中为了确保数据的准备,需要由元转成分
+price = int(float(price*100))
+return jsonify(errno=RET.DATAERR,errmsg='价格数据错误')
+
+12/上传房屋图片:
+request.args(url中查询字符串,键值对)---request.form(表单中)---request.data(xml)---request.get_json(请求体中的json数据)
+
+请求方法:POST
+请求url:/api/v1.0/houses/<int:house_id>/images
+请求参数:
+参数名         是否必须        参数描述
+house_id        是           房屋的id
+house_image     是           房屋图片
+
+返回结果:
+正确情况下:
+image_url = 七牛外链域名 + 七牛返回的图片名称
+return jsonify(errno=RET.OK,errmsg='OK',data={'url':image_url})
+错误情况下:
+return jsonify(errno=RET.THIRDERR,errmsg='上传图片失败')
+
+
 

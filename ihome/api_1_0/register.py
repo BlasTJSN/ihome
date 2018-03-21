@@ -46,7 +46,7 @@ def generate_image_code(image_code_id):
 
 
 
-@api.route("/smscode/<mobile>", method=["GET"])
+@api.route("/smscode/<mobile>", methods=["GET"])
 def send_sms_code(mobile):
     """
     发送短信:获取参数--校验参数--查询数据--返回结果
@@ -129,7 +129,7 @@ def send_sms_code(mobile):
         return jsonify(errno=RET.THIRDERR, errmsg="发送失败")
 
 # url采用/user符合restful风格
-@api.route("/user", method=["POST"])
+@api.route("/user", methods=["POST"])
 def register():
     """
 

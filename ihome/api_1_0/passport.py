@@ -220,3 +220,28 @@ def set_user_auth():
         return jsonify(errno=RET.DBERR, errmsg="保存用户实名信息失败")
     # 返回结果
     return jsonify(errno=RET.OK, errmsg="OK")
+
+@api.route("/user/auth", methods=["GET"])
+@login_required
+def get_user_auth():
+    """
+    获取用户的实名信息
+    1/获取用户身份id
+    2/查询mysql数据库,确认用户的存在
+    3/检查结果
+    4/返回结果,用户的实名信息
+    :return:
+    """
+    # 获取用户id
+    user_id = g.user_id
+    # 查询数据库
+    try:
+        user = User.query.filter_by(id=user_id).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询用户实名信息失败")
+    # 判断查询结果
+    if not user:
+        return jsonify(errno=RET.NODATA, errmsg="无效操作")
+    # 返回结果
+    return jsonify(errno=RET.OK, errmsg="OK", data=user.auth_to_dict())
