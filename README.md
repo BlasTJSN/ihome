@@ -222,6 +222,19 @@ sample(list, k) 从列表中随机获取k个元素
         返回结果，传输数据user.auth_to_dict()
 
 
+#### 6. 实现house.py中的逻辑，在ihome/api_1_0/__init__.py中导入house模块\
+6.1 实现获取城区信息逻辑，新增--ihome/static/js/ihome/index.js
+        尝试从redis中获取城区信息
+        判断查询结果是否有数据
+            有数据，留下访问redis数据库的日志记录
+            返回结果
+        查询mysql数据库
+        判断查询结果
+        定义空列表，存放查询结果
+        遍历查询结果，将对象转化成字典存储在列表中
+        序列化列表，转换成json
+        存入redis缓存
+        返回结果
 
 
 
