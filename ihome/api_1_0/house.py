@@ -159,3 +159,76 @@ def save_house_info():
         return jsonify(errno=RET.DBERR, errmsg="保存房屋数据失败")
     # 返回结果，house.id是用来后面实现上传房屋图片做准备（前段获取数据）
     return jsonify(errno=RET.OK, errmsg="OK", data={"house_id":house.id})
+
+
+@api.route("/houses/<int:house_id>/images",methods=["POST"])
+@login_required
+def save_house_image(house_id):
+    """
+    上传房屋图片
+    1/获取参数,image_data = request.files属性
+    2/判断获取结果
+    3/根据house_id查询数据库,House模型类,
+    4/判断查询结果,确认房屋的存在
+    5/读取图片数据
+    6/调用七牛云接口,上传图片
+    7/保存图片名称
+    8/构造HouseImage模型类对象,准备存储房屋图片数据
+    house_image = HouseImage()
+    house_image.house_id = house.id
+    house_image.url = image_name
+    db.session.add(house_image)
+    9/判断房屋默认图片是否设置,如未设置,默认添加当前图片为主图片;
+    10/保存房屋对象数据,db.session.add(house)
+    11/提交数据到数据库中
+    db.session.commit()
+    12/拼接图片的绝对路径
+    13/返回结果
+    :param house_id:
+    :return:
+    """
+    # 获取图片文件
+    house_image = request.files.get("house_image")
+    # 检验参数的存在
+    if not house_image:
+        return jsonify(errno=RET.PARAMERR, errmsg="未上传房屋图片")
+    # 连接数据库，判断房屋的存在
+    try:
+        house = House.query.filter_by(id=house_id).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询房屋数据失败")
+    # 判断查询结果
+    if not house:
+        return jsonify(errno=RET.NODATA, errmsg="房屋不存在")
+    # 读取图片数据
+    house_image_data = house_image.read()
+    # 调用七牛云接口，上传房屋图片
+    try:
+        image_name = storage(house_image_data)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.THIRDERR, errmsg="上传图片失败")
+    # 保存房屋图片数据，构建模型类对象
+    house_image = HouseImage()
+    house_image.house_id = house_id
+    house_image.url = image_name
+    # 添加数据到数据库会话对象
+    db.session.add(house_image)
+
+    # 判断房屋朱图片是否设置，如未设置，添加当前图片为主图片
+    if not house.index_image_url:
+        house.index_image_url = image_name
+        db.session.add(house)
+
+    # 提交数据到mysql数据库
+    try:
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="保存房屋图片数据失败")
+    # 拼接图片的绝对路径
+    image_url = constants.QINIU_DOMIN_PREFIX + image_name
+    # 返回数据
+    return jsonify(errno=RET.OK, errmsg="OK", data={"url":image_url})
