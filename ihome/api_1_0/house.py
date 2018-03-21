@@ -70,3 +70,92 @@ def get_areas_info():
     # 返回结果，城区信息已经是json字符串，不需要jsonify
     resp = '{"errno":0, "errmsg":"OK", "data":%s}' % area_info
     return resp
+
+@api.route("/houses", methods=["POST"])
+@login_required
+def save_house_info():
+    """
+    发布新房源
+    1/确认用户身份id
+    2/获取参数,get_json()
+    3/判断数据的存在
+    4/获取详细的参数信息,指房屋的基本信息,不含配套设施title,price/area_id/address/unit/acreage/cacacity/beds/deposit/min_days/max_days/
+    5/检查参数的完整性
+    6/对价格参数进行转换,由元转成分
+    7/构造模型类对象,准备存储数据
+    8/判断配套设施的存在
+    9/需要对配套设施进行过滤查询,后端只会保存数据库中已经定义的配套设施信息
+    facilites = Facility.query.filter(Facility.id.in_(facility)).all()
+    house.facilities = facilities
+    10/保存数据到数据库中
+    11/返回结果,house.id,让后面上传房屋图片和房屋进行关联
+    :return:
+    """
+    # 获取user_id
+    user_id = g.user_id
+    # 获取post参数
+    house_data = request.get_json()
+    # 检验参数的存在
+    if not house_data:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+    # 获取详细参数信息
+    title = house_data.get("title") # 房屋标题
+    area_id = house_data.get("area_id") # 房屋城区
+    address = house_data.get("address") # 详细地址
+    price = house_data.get("price") # 房屋价格
+    room_count = house_data.get("room_count") # 房屋数目
+    acreage = house_data.get("acreage") # 房屋面积
+    unit = house_data.get("unit") # 房屋户型
+    capacity = house_data.get("capacity") # 适住人数
+    beds = house_data.get("beds") # 卧床配置
+    deposit =house_data.get("deposit") # 押金
+    min_days = house_data.get("min_days") # 最小入住天数
+    max_days = house_data.get("max_days") # 最大入住天数
+    # 检验参数完整性
+    if not all([title,area_id,address,price,room_count,acreage,unit,capacity,beds,deposit,min_days,max_days]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+    # 对价格参数进行转换
+    try:
+        price = int(float(price)*100)
+        deposit = int(float(deposit)*100)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DATAERR, errmsg="价格数据错误")
+    # 构造模型类对象
+    house = House()
+    house.user_id = user_id
+    house.area_id = area_id
+    house.title = title
+    house.address = address
+    house.price = price
+    house.room_count = room_count
+    house.acreage = acreage
+    house.unit = unit
+    house.capacity = capacity
+    house.beds = beds
+    house.deposit = deposit
+    house.min_days = min_days
+    house.max_days = max_days
+
+    # 获取房屋配套设施参数信息
+    facility = house_data.get("facility")
+    # 判断配套设施的存在
+    if facility:
+        # 查询数据库，对房屋配套设施进行过滤查询，确保配套设施的编号在数据库中存在
+        try:
+            facilities = Facility.quert.filter(Facility.id.in_(facility)).all()
+            # 保存房屋配套设施信息，配套设施的数据存在第三张表，关系引用在数据库中没有具体字段
+            house.facilities = facilities
+        except Exception as e:
+            current_app.logger.error(e)
+            return jsonify(errno=RET.DBERR, errmsg="查询配套设施异常")
+    # 保存房屋数据到mysql数据库
+    try:
+        db.session.add(house)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="保存房屋数据失败")
+    # 返回结果，house.id是用来后面实现上传房屋图片做准备（前段获取数据）
+    return jsonify(errno=RET.OK, errmsg="OK", data={"house_id":house.id})
