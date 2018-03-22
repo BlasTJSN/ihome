@@ -265,3 +265,63 @@ def get_user_houses():
     # 返回结果
     return jsonify(errno=RET.OK, errmsg="OK", data={"houses":houses_list})
 
+
+@api.route("/houses/index", methods=["GET"])
+def get_houses_index():
+    """
+    项目首页幻灯片
+    缓存----磁盘----缓存
+    1/尝试查询redis数据库,获取项目首页信息
+    2/判断查询结果
+    3/如果有数据,留下访问的记录,直接返回
+    4/查询mysql数据库
+    5/默认采取房屋成交次数最高的五套房屋
+    houses = House.query.order_by(House.order_count.desc()).limit(5)
+    6/判断查询结果
+    7/定义容器存储查询结果
+    8/遍历查询结果,判断房屋是否有主图片,如未设置默认不添加
+    9/调用模型类中方法house.to_basic_dict()
+    10/把房屋数据转成json字符串
+    11/存入redis缓存中
+    12/返回结果
+    :return:
+    """
+    # 尝试从redis中获取后人幻灯片信息
+    try:
+        ret = redis_store.get("home_page_data")
+    except Exception as e:
+        current_app.logger.error(e)
+        ret = None
+    # 判断获取结果
+    if ret:
+        # 留下访问redis数据库的记录
+        current_app.logger.info("hit redis houses index info")
+        return '{"errno":0,"errmsg":"OK","data":%s}' % ret
+
+    # 未获取，查询mysql数据库
+    try:
+        # 默认按房屋成交次数排序，使用limit分页5条房屋数据
+        houses = House.query.order_by(House.order_count.desc()).limit(constants.HOME_PAGE_MAX_HOUSES)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询房屋数据失败")
+    # 判断查询结果
+    if not houses:
+        return jsonify(erno=RET.NODATA,errmsg="无房屋数据")
+    # 定义容器
+    houses_list = []
+    for house in houses:
+        # 如果房屋为设置主图片，默认不添加
+        if not house.index_image_url:
+            continue
+        houses_list.append(house.to_basic_dict())
+    # 把房屋数据转换成json
+    houses_json = json.dumps(houses_list)
+    # 存入redis中
+    try:
+        redis_store.setex("home_page_data", constants.HOME_PAGE_DATA_REDIS_EXPIRES, houses_json)
+    except Exception as e:
+        current_app.logger.error(e)
+    # 构造响应报文，返回结果
+    resp = '{"errno":0,"errmsg":"OK","data":%s}' % houses_json
+    return resp
