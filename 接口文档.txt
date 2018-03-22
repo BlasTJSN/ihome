@@ -179,5 +179,66 @@ return jsonify(errno=RET.OK,errmsg='OK',data={'url':image_url})
 错误情况下:
 return jsonify(errno=RET.THIRDERR,errmsg='上传图片失败')
 
+13/我的房源
+请求方法:GET
+请求url:/api/v1.0/user/houses
+请求参数:无参
+返回结果:
+正确情况下:
+
+return jsonify(errno=RET.OK,errmsg='OK',data={'houses':houses_list})
+
+错误情况下:
+return jsonify(errno=RET.DBERR,errmsg='查询用户房屋数据失败')
+
+14/用户退出
+请求方法:DELETE
+请求url:/api/v1.0/session
+请求参数:无参
+返回结果:
+return jsonify(errno=RET.OK,errmsg='OK')
+
+15/检查用户登陆状态
+请求方法:GET
+请求url/api/v1.0/session
+请求参数:无参
+返回结果:
+正确情况下:
+return jsonify(errno=RET.OK,errmsg='true',data={'name':name})
+
+错误情况下:
+return jsonify(errno=RET.SESSIONERR,errmsg='false')
+
+16/项目首页幻灯片
+请求方法:GET
+请求url:/api/v1.0/houses/index
+请求参数:无参
+
+返回结果:
+正确情况下:
+resp = {"errno":0,"errmsg":"OK","data:":%s} % houses_json
+return resp
+错误情况下:
+return jsonify(errno=RET.DBERR,errmsg='查询房屋数据失败')
+
+17/房屋详情页面
+请求方法:GET
+请求url:/api/v1.0/houses/<house_id>
+请求参数:
+参数名         是否必须        参数说明
+house_id        是           房屋所属id
+
+返回结果:
+正确情况下:
+resp = {"errno":0,"errmsg":"OK","data":{"user_id":%s,"house":%s}} % (user_id,house_data)
+return resp
+
+错误情况下:
+return jsonify(errno=RET.DBERR,errmsg='查询房屋数据失败')
+
+
+
+
+
 
 

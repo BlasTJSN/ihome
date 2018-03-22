@@ -6,7 +6,7 @@ from ihome import redis_store, constants,db
 # 导入flask内置对象
 from flask import current_app, jsonify, g, request
 # 导入模型类
-from ihome.models import Area, House, Facility, HouseImage
+from ihome.models import Area, House, Facility, HouseImage,User
 # 导入自定义状态码
 from ihome.utils.response_code import RET
 # 导入登陆验证装饰器
@@ -232,3 +232,36 @@ def save_house_image(house_id):
     image_url = constants.QINIU_DOMIN_PREFIX + image_name
     # 返回数据
     return jsonify(errno=RET.OK, errmsg="OK", data={"url":image_url})
+
+@api.route("/user/houses", methods=["GET"])
+@login_required
+def get_user_houses():
+    """
+    我的房源
+    1/确认用户身份
+    2/根据用户id查询数据库
+    3/使用关系定义返回的对象,实现一对多的查询,
+    4/定义容器
+    5/遍历查询结果,调用模型类中的方法
+    6/返回数据
+    :return:
+    """
+    # 获取用户id
+    user_id = g.user_id
+    # 查询数据库，确认用户的存在
+    try:
+        user = User.query.get(user_id)
+        # 使用反向引用，实现一对多的查询，获取该用户发布的所有房屋信息
+        houses = user.houses
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询用户房屋数据失败")
+    # 定定义容器
+    houses_list = []
+    # 如果房屋数据存在，遍历查询结果，添加到列表中
+    if houses:
+        for house in houses:
+            houses_list.append(house.to_basic_dict())
+    # 返回结果
+    return jsonify(errno=RET.OK, errmsg="OK", data={"houses":houses_list})
+
