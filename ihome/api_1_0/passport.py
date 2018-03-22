@@ -256,3 +256,20 @@ def logout():
     """
     session.clear()
     return jsonify(errno=RET.OK, errmsg="OK")
+
+@api.route("/session", methods=["GET"])
+def check_user_login():
+    """
+    检查用户登陆状态
+    1/从redis缓存中获取用户缓存用户名信息
+    2/判断获取结果是否存在
+    3/返回结果
+    :return:
+    """
+    # 使用session对象获取用户名
+    name = session.get("name")
+    # 判断获取结果，如果用户已经登录，返回用户名
+    if name:
+        return jsonify(errno=RET.OK, errmsg="true", data={"name":name})
+    else:
+        return jsonify(errno=RET.SESSIONERR, errmsg="false")
