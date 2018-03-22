@@ -221,6 +221,11 @@ sample(list, k) 从列表中随机获取k个元素
         查询数据库，判断用户是否存在
         返回结果，传输数据user.auth_to_dict()
 
+5.7 实现用户退出逻辑
+        添加用户登陆认证装饰器
+        清楚用户的缓存信息
+        返回结果
+
 
 #### 6. 实现house.py中的逻辑，在ihome/api_1_0/__init__.py中导入house模块\
 6.1 实现获取城区信息逻辑，新增--ihome/static/js/ihome/index.js
@@ -277,7 +282,6 @@ sample(list, k) 从列表中随机获取k个元素
         返回数据
 
 
-我的房源
 
 用户退出
 

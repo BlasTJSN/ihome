@@ -245,3 +245,14 @@ def get_user_auth():
         return jsonify(errno=RET.NODATA, errmsg="无效操作")
     # 返回结果
     return jsonify(errno=RET.OK, errmsg="OK", data=user.auth_to_dict())
+
+@api.route("/session", methods=["DELETE"])
+@login_required
+def logout():
+    """
+    用户退出
+    退出的本质相当于服务器清除用户的缓存信息
+    :return:
+    """
+    session.clear()
+    return jsonify(errno=RET.OK, errmsg="OK")
