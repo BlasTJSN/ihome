@@ -4,7 +4,7 @@ from . import api
 # 导入redis实例
 from ihome import redis_store, constants,db
 # 导入flask内置对象
-from flask import current_app, jsonify, g, request
+from flask import current_app, jsonify, g, request,session
 # 导入模型类
 from ihome.models import Area, House, Facility, HouseImage,User
 # 导入自定义状态码
@@ -325,3 +325,60 @@ def get_houses_index():
     # 构造响应报文，返回结果
     resp = '{"errno":0,"errmsg":"OK","data":%s}' % houses_json
     return resp
+
+@api.route("/houses/<int:house_id>", methods=["GET"])
+def get_house_detail(house_id):
+    """
+    获取房屋详情数据
+    缓存----磁盘----缓存
+    1/确认访问接口的用户身份
+    user_id = session.get('user_id',-1)
+    2/判断house_id参数的存在
+    3/尝试读取redis缓存,获取房屋详情数据
+    4/判断获取结果
+    5/如未获取,读取mysql数据库
+    6/判断获取结果
+    7/调用模型类中的方法,house.to_full_dict()
+    8/转成json数据
+    9/存入redis缓存中
+    10/构造响应数据返回结果
+    :param house_id:
+    :return:
+    """
+    # 使用session对象获取用户身份
+    user_id = session.get("user_id", -1)
+    # 判断house_id存在
+    if not house_id:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+    # 尝试读取redis数据库，获取房屋详情数据
+    try:
+        ret = redis_store.get("house_info_%s" % house_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        ret = None
+    # 判断获取结果
+    if ret:
+        # 留下访问redis记录
+        current_app.logger.info("hit redis house detail info")
+        return '{"errno":0,"errmsg":"OK","data":{"user_id":%s,"house":%s}}' % (user_id, ret)
+    # 查询mysql数据库
+    try:
+        house = House.query.get(house_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg="查询房屋数据失败")
+    # 判断查询结果
+    if not house:
+        return jsonify(errno=RET.NODATA, errmsg="无房屋数据")
+    # 调用模型类中的to_full_dict()方法
+    try:
+        house_data = house.to_basic_dict()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询房屋详情数据失败")
+    # 转换成json
+    house_json = json.dumps(house_data)
+    # 构造响应报文，响应结果
+    resp = '{"errno":0, "errmsg":"OK", "data":{"user_id":%s,"house":%s}}' % (user_id, house_json)
+    return resp
+
