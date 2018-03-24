@@ -254,7 +254,11 @@ def logout():
     退出的本质相当于服务器清除用户的缓存信息
     :return:
     """
+    # 退出登录会报missing错误
+    csrf_token = session.get("csrf_token")
     session.clear()
+    # 清空后再设置token
+    session["csrf_token"] = csrf_token
     return jsonify(errno=RET.OK, errmsg="OK")
 
 @api.route("/session", methods=["GET"])
