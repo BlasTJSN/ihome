@@ -76,5 +76,52 @@ def save_order():
         return jsonify(errno=RET.DBERR, errmsg="保存订单失败")
     return jsonify(errno=RET.OK, errmsg="OK", data={"order_id":order.id})
 
+@api.route("/user/<int:order_id>/status",methods=["PUT"])
+@login_required
+def accept_reject_order(order_id):
+    """接单，拒单"""
+    # 获取用户id
+    user_id = g.user_id
+    # 获取参数
+    req_data = request.get_json()
+    # 判断参数的存在
+    if not req_data:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+    # action参数表明客户端的请求是接单还是拒单行为
+    action = req_data.get("action")
+    # 参数校验
+    if action not in ("accept","reject"):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+    try:
+        # 根据订单号查询订单，并且要求订单处于等待接单状态
+        order = Order.query.filter(Order.id == order_id,Order.status == "WAIT_ACCEPT").first()
+        house = order.house
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="无法获取订单数据")
+    # 确保房东只能修改数据自己的房屋订单
+    if not order or house.user_id != user_id:
+        return jsonify(errno=RET.REQERR,errmsg="操作无效")
+    if action == "accept":
+        # 接单，将订单信息设置为等待评论
+        order.status = "WAIT_COMMENT"
+    elif action == "reject":
+        # 拒单，要求用户传递拒单原因
+        reason = req_data.get("reason")
+        if not reason:
+            return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+        order.status = "REJECTED"
+        order.comment = reason
+    try:
+        db.session.add(order)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="操作失败")
+    return jsonify(errno=RET.OK, errmsg="OK")
+
+
+
 
 
