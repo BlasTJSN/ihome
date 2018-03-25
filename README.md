@@ -340,8 +340,22 @@ sample(list, k) 从列表中随机获取k个元素
         提交事务
         返回结果
 
+#### 7. 实现orders.py中的逻辑，在ihome/api_1_0/__init__.py中导入orders模块\
 
-
+7.1 实现保存订单逻辑,新增--ihome/static/js/ihome/orders.js
+        添加用户登陆认证装饰器，获取参数user_id
+        post请求获取参数order_data
+        判断参数的存在
+        获取详细参数house_id,start_date_str,end_date_str
+        检验参数完整性
+        日期格式检验
+        计算预计天数
+        查询数据库，判断房屋是否存在
+        判断预定房屋的用户是否是房东本人
+        查询时间冲突的订单数，判断房屋是否被别人下单
+        计算订单总额
+        保存订单数据
+        返回结果
 
 
 
@@ -352,5 +366,8 @@ sample(list, k) 从列表中随机获取k个元素
     获取所有订单放在新列表中，订单开始日期和结束日期组成元组[(),()]
     查询对应的满足冲突要求的订单的house对象
     houses = House.query.filter_by(orders.begin_date-----)
+
+
+
 
 

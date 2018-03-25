@@ -236,9 +236,23 @@ return resp
 错误情况下:
 return jsonify(errno=RET.DBERR,errmsg='查询房屋数据失败')
 
+18/房屋列表页
+请求方法:GET
+请求url:/api/v1.0/houses
+请求参数:
+参数名             是否必须        参数说明
+aid                 否           区域信息
+sd                  否           用户选择的开始日期
+ed                  否           用户选择的结束日期
+sk                  否           排序条件(需要给默认值new)
+p                   否           页数(需要给默认值1)
 
+返回结果:
+正确情况下:使用的是哈希数据类型,对象,本质让一个键中存储多条数据
+redis_key = 'houses_%s_%s_%s_%s' %(aid,sd,ed,sk)
+ret = redis_store.hget(redis_key,page)
+return ret
 
-
-
-
+错误情况下:
+return jsonify(errno=RET.DBERR,errmsg='查询房屋列表信息失败')
 
