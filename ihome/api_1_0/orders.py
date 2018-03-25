@@ -121,6 +121,48 @@ def accept_reject_order(order_id):
         return jsonify(errno=RET.DBERR, errmsg="操作失败")
     return jsonify(errno=RET.OK, errmsg="OK")
 
+@api.route("/user/<int:order_id>/comment",methods=["PUT"])
+@login_required
+def save_order_comment(order_id):
+    """保存订单评论信息"""
+    user_id = g.user_id
+    # 获取参数
+    req_data = request.get_json()
+    if not req_data:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+    comment = req_data.get("comment")
+    # 检查参数
+    if not comment:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+    try:
+        # 确保只能评论自己的订单，订单处于待评论状态
+        order = Order.query.filter(Order.id == user_id, Order.user_id == user_id, Order.status == "WAIT_COMMENT").first()
+        house = order.house
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="无法获取订单数据")
+    if not order:
+        return jsonify(errno=RET.NODATA, errmsg="操作无效")
+    try:
+        # 将订单设为已完成状态
+        order.status = "COMPLETE"
+        # 保存订单评价信息
+        order.comment = comment
+        # 将订单完成数加1
+        house.order_count += 1
+        db.session.add(order)
+        db.session.add(house)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="操作失败")
+    # 因为房屋详情中有订单的评价信息，为了更新信息，删除redis中关于本订单房屋的详情缓存
+    try:
+        redis_store.delete("house_info_%s" % order.house_id)
+    except Exception as e:
+        current_app.logger.error(e)
+    return jsonify(errno=RET.OK, errmsg="OK")
+
 
 
 
