@@ -540,5 +540,34 @@ def get_houses_list():
     # 返回结果
     return resp_json
 
+@api.route("/user/orders", methods=["GET"])
+@login_required
+def get_user_order():
+    """查询用户的订单信息"""
+    # 获取用户id
+    user_id = g.user_id
+    # 获取用户身份
+    role = request.args.get("role","")
+    # 查询订单数据
+    try:
+        if "landlord" == role:
+            # 以房东身份查询订单
+            # 先查询属于自己的房屋
+            houses = House.query.filter(House.user_id == user_id).all()
+            houses_ids = [house.id for house in houses]
+            # 再查询预定了房屋的订单
+            orders = Order.query.filter(Order.house_id.in_(houses_ids)).order_by(Order.create_time.desc()).all()
+        else:
+            # 以房客身份查询订单，查询自己预定的订单
+            orders = Order.query.filter(Order.user_id == user_id).order_by(Order.create_time.desc()).all()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询订单信息失败")
+    # 将订单对象转换为字典数据
+    orders_dict_list = []
+    if orders:
+        for order in orders:
+            orders_dict_list.append(order.to_dict())
+    return jsonify(errno=RET.OK,errmsg="OK",data={"orders":orders_dict_list})
 
 
