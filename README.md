@@ -1,5 +1,5 @@
 # ihome
-爱家房租项目
+房租项目
 
 #### 1. 项目准备
 1.1 创建虚拟环境Flask_ihome，安装requirements.txt中的依赖包
